@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -153,6 +156,24 @@ func newController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 	return c
 }
 
+type arguments struct {
+	kubeconfig string
+}
+
+func getArguments() arguments {
+	var args arguments
+
+	if home := homedir.HomeDir(); home != "" {
+		flag.StringVar(&args.kubeconfig, "kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		flag.StringVar(&args.kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+
+	flag.Parse()
+
+	return args
+}
+
 // func doTheThing() {
 // 	fmt.Println("Iter")
 // }
@@ -160,8 +181,8 @@ func newController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 func main() {
 	logrus.Info("Shared Informer app started")
 
-	kubeconfig := os.Getenv("KUBECONFIG")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	arg := getArguments()
+	config, err := clientcmd.BuildConfigFromFlags("", arg.kubeconfig)
 	if err != nil {
 		log.Panic(err.Error())
 	}
