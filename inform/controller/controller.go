@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/found-it/kube-informer/inform/report"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -23,6 +24,7 @@ type Controller struct {
 	factory   informers.SharedInformerFactory
 	informer  cache.SharedInformer
 	queue     workqueue.RateLimitingInterface
+	report    *report.ReportController
 }
 
 type Item struct {
@@ -30,6 +32,7 @@ type Item struct {
 	action    string
 	name      string
 	namespace string
+	pod       *v1.Pod
 }
 
 func (c *Controller) worker() {
@@ -51,7 +54,15 @@ func (c *Controller) worker() {
 				return nil
 			}
 
-			c.logger.Infof("%s: %s", item.action, item.key)
+			// c.logger.WithField("action", item.action).Infof("%s", item.key)
+			switch item.action {
+			case "ADD":
+				c.report.Add(item.pod)
+			case "UPDATE":
+				c.report.Update(item.pod)
+			case "DELETE":
+				c.report.Delete(item.pod)
+			}
 			c.queue.Forget(obj)
 			return nil
 		}(obj)
@@ -62,16 +73,20 @@ func (c *Controller) worker() {
 	}
 }
 
+func (c *Controller) RunOnce() {
+	runner(c, true)
+}
+
 func (c *Controller) Run() {
+	runner(c, false)
+}
+
+func runner(c *Controller, runOnce bool) {
 	defer runtime.HandleCrash()
 	defer c.queue.ShutDown()
 
 	stopper := make(chan struct{})
 	defer close(stopper)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	c.logger.Info("Listening for signals")
 
 	c.factory.Start(stopper)
 
@@ -87,8 +102,17 @@ func (c *Controller) Run() {
 	}
 
 	c.logger.Info("Started worker")
-	s := <-sig
-	c.logger.Info("Received signals ", s)
+	if runOnce {
+		time.Sleep(5 * time.Second)
+		// build report from the cache and exit
+
+	} else {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+		c.logger.Info("Listening for signals")
+		s := <-sig
+		c.logger.Info("Received signals ", s)
+	}
 	c.logger.Info("Finished working")
 }
 
@@ -97,11 +121,12 @@ func NewController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 	factory := informers.NewSharedInformerFactory(clientset, resyncPeriod)
 
 	c := &Controller{
-		logger:    logrus.WithField("app", "kai"),
+		logger:    logrus.WithField("pkg", "controller"),
 		clientset: clientset,
 		factory:   factory,
 		informer:  factory.Core().V1().Pods().Informer(),
 		queue:     workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
+		report:    report.NewReportController(),
 	}
 
 	var item Item
@@ -114,6 +139,7 @@ func NewController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 			item.action = "ADD"
 			item.name = pod.GetName()
 			item.namespace = pod.GetNamespace()
+			item.pod = pod
 			if err == nil {
 				c.queue.Add(item)
 			} else {
@@ -127,6 +153,7 @@ func NewController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 			item.action = "UPDATE"
 			item.name = newpod.GetName()
 			item.namespace = newpod.GetNamespace()
+			item.pod = newpod
 			if err == nil {
 				if oldpod.ResourceVersion != newpod.ResourceVersion {
 					c.queue.Add(item)
@@ -141,6 +168,7 @@ func NewController(clientset kubernetes.Interface, resyncPeriod time.Duration) *
 			item.action = "DELETE"
 			item.name = pod.GetName()
 			item.namespace = pod.GetNamespace()
+			item.pod = pod
 			if err == nil {
 				c.queue.Add(item)
 			} else {
