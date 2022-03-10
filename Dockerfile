@@ -1,8 +1,16 @@
-FROM golang:1.17-alpine
+#
+# File: Dockerfile
+# Project: kube-informer
+#
 
+# Builder stage
+FROM golang:1.17 AS builder
 WORKDIR /buildsource
 COPY . /buildsource
+RUN set -eux; \
+    make linux-binary
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /usr/local/bin/inform
-
+# Final stage
+FROM registry.access.redhat.com/ubi8/ubi-micro
+COPY --from=builder /buildsource/bin/inform /usr/local/bin/inform
 CMD ["inform", "--in-cluster"]

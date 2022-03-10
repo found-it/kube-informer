@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
+	// "os"
+	// "os/signal"
+	// "syscall"
 	"time"
 
 	"github.com/found-it/kube-informer/inform/report"
@@ -43,6 +43,7 @@ func (c *Controller) worker() {
 			c.logger.Info("Cache has been shut down")
 			break
 		}
+
 		err := func(obj interface{}) error {
 			defer c.queue.Done(obj)
 			var item Item
@@ -81,6 +82,12 @@ func (c *Controller) Run() {
 	runner(c, false)
 }
 
+func (c* Controller) printer() {
+    for item := range c.report.Report.Items {
+        c.logger.Info(item)
+    }
+}
+
 func runner(c *Controller, runOnce bool) {
 	defer runtime.HandleCrash()
 	defer c.queue.ShutDown()
@@ -107,11 +114,14 @@ func runner(c *Controller, runOnce bool) {
 		// build report from the cache and exit
 
 	} else {
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-		c.logger.Info("Listening for signals")
-		s := <-sig
-		c.logger.Info("Received signals ", s)
+		// sig := make(chan os.Signal, 1)
+		// signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+        //
+		// c.logger.Info("Listening for signals")
+		// s := <-sig
+		// c.logger.Info("Received signals ", s)
+
+        wait.Until(c.printer, 5*time.Second, stopper)
 	}
 	c.logger.Info("Finished working")
 }

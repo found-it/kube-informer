@@ -33,20 +33,16 @@ func getArguments() arguments {
 	return args
 }
 
-// func doTheThing() {
-// 	fmt.Println("Iter")
-// }
-
 func main() {
 	logrus.Info("Shared Informer app started")
 
 	arg := getArguments()
 
-    var config *rest.Config
-    var err error
+	var config *rest.Config
+	var err error
 
 	if arg.incluster {
-        config, err = rest.InClusterConfig()
+		config, err = rest.InClusterConfig()
 		if err != nil {
 			log.Panic(err.Error())
 		}
@@ -57,14 +53,12 @@ func main() {
 		}
 	}
 
-    clientset, err := kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Panic(err.Error())
 	}
 
-	c := controller.NewController(clientset, 0)
-
-	c.Run()
-
-	// wait.Forever(doTheThing, 5*time.Second)
+	controller.
+		NewController(clientset, 0).
+		Run()
 }

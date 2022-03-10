@@ -6,7 +6,7 @@ import (
 )
 
 type ReportController struct {
-	report Report
+	Report Report
 	logger *logrus.Entry
 }
 type Report struct {
@@ -27,12 +27,22 @@ type Image struct {
 func NewReportController() *ReportController {
 	return &ReportController{
 		logger: logrus.WithField("pkg", "report"),
-		report: Report{},
+		Report: Report{},
 	}
 }
 
 func (r *ReportController) Add(pod *v1.Pod) {
 	r.logger.WithField("action", "add").Info(pod.GetName())
+    r.Report.Items = append(r.Report.Items, Item{
+        Namespace: pod.GetNamespace(),
+        Images: []Image{
+            {
+                digest: "sha256",
+                tag: pod.GetName(),
+                repository: pod.GetName(),
+            },
+        },
+    })
 }
 
 func (r *ReportController) Update(pod *v1.Pod) {
