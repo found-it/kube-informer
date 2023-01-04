@@ -1,7 +1,7 @@
 # TODO: 12/21/22@12:36 Build me
 contents:
   repositories:
-    - '@local /work/packages'
+    - '@local /github/workspace/packages'
   packages:
     - inform@local
 
