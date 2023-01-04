@@ -1,2 +1,11 @@
+# local app build artifacts
 bin/
-bin/
+
+# local melange artifacts
+melange.rsa*
+packages/
+
+# local apko artifacts
+inform.tar
+sbom-x86_64.cdx
+sbom-x86_64.spdx.json
