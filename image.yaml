@@ -6,9 +6,7 @@ contents:
     - inform@local
 
 entrypoint:
-  type: service-bundle
-  services:
-    inform: /usr/bin/inform --in-cluster
+  command: /usr/bin/inform --in-cluster
 
 accounts:
   groups:

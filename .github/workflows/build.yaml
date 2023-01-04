@@ -12,21 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run something
-        run: |
-          echo "What is the current directory"
-          pwd
 
-          echo "Listing directory"
-          ls
+      - run: |
+          find . -not -path '*/.*'
 
-          echo "hello"
       - name: Melange Build
         id: melange
         uses: chainguard-dev/actions/melange-build@main
         with:
           config: melange.yaml
           sign-with-temporary-key: true
+
+      - run: |
+          find . -not -path '*/.*'
+
       - name: APKO Build
         id: apko
         uses: chainguard-images/actions/apko-build@main
@@ -34,6 +33,10 @@ jobs:
           config: image.yaml
           tag: jpetersenames/inform:${{ github.sha }}
           keyring-append: melange.rsa.pub
+
+      - run: |
+          find . -not -path '*/.*'
+
       - name: Testing
         id: test
         shell: bash
