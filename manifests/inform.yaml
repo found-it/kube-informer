@@ -18,7 +18,7 @@ spec:
       containers:
         - name: inform
           securityContext: {}
-          image: "jpetersenames/inform:v0.0.2"
+          image: "ghcr.io/found-it/inform:61dc17d18e8698f4f5cb778f50cb89735319b371"
           imagePullPolicy: Always
           command:
             - "inform"

@@ -14,3 +14,7 @@ mac-binary: clean
 .PHONY: clean
 clean:
 	rm -rf $(BINARYDIR)
+	rm -f melange.rsa*
+	rm -rf packages
+	rm -f sbom-x86_64.*
+	rm -f inform.tar

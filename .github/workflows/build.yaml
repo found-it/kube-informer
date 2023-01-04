@@ -16,13 +16,13 @@ jobs:
       - name: Melange Build
         uses: chainguard-dev/actions/melange-build@main
         with:
-          config: melange.yaml
+          config: build/inform.melange.yaml
           sign-with-temporary-key: true
 
       - name: APKO Build
         uses: chainguard-images/actions/apko-build@main
         with:
-          config: image.yaml
+          config: build/inform.apko.yaml
           tag: ghcr.io/${{ github.actor }}/inform:${{ github.sha }}
           keyring-append: melange.rsa.pub
 
@@ -43,6 +43,6 @@ jobs:
         shell: bash
         run: |
           set -x
-          export PULLSTRING="$(docker load -i output.tar | cut -d' ' -f3)"
+          export PULLSTRING="$(docker load -i output.tar | grep 'Loaded image:' | cut -d' ' -f3)"
           echo "${PULLSTRING}"
           docker push "${PULLSTRING}"
