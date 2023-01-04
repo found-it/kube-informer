@@ -19,7 +19,7 @@ spec:
         - name: inform
           securityContext: {}
           image: "jpetersenames/inform:v0.0.2"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command:
             - "inform"
             - "--in-cluster"

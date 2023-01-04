@@ -83,9 +83,11 @@ func (c *Controller) Run() {
 }
 
 func (c* Controller) printer() {
-    for item := range c.report.Report.Items {
-        c.logger.Info(item)
-    }
+    // for item := range c.report.Report.Items {
+    //     c.logger.Info(item)
+    //     c.logger.Info("here")
+    // }
+    return
 }
 
 func runner(c *Controller, runOnce bool) {
