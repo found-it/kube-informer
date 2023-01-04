@@ -1,0 +1,45 @@
+# 1. Get it working on alpine (with mage)
+# 2. Get it working on wolfi
+# 3. APKO
+package:
+  name: inform
+  version: 0.1.0
+  description: kubernetes watch informer
+  target-architecture:
+    - all
+  copyright:
+    - license: Apache-2.0
+      paths:
+        - "*"
+
+environment:
+  contents:
+    repositories:
+      - https://dl-cdn.alpinelinux.org/alpine/edge/main
+      - https://dl-cdn.alpinelinux.org/alpine/edge/community
+    packages:
+      - alpine-baselayout-data
+      - ca-certificates-bundle
+      - busybox
+      - go
+      - make
+      - git
+
+pipeline:
+  - name: Build kube-informer application
+    runs: |
+      set -x
+      export WORKDIR=$(pwd)
+
+      # Install mage dependency
+      git clone https://github.com/magefile/mage
+      cd mage
+      export GOBIN=/usr/local/bin
+      go run bootstrap.go
+
+      # Install inform binary
+      cd ${WORKDIR}
+      mage inform:build
+
+      mkdir -p ${{targets.destdir}}/usr/bin/
+      cp "${WORKDIR}/bin/inform" ${{targets.destdir}}/usr/bin/inform

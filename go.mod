@@ -3,6 +3,7 @@ module github.com/found-it/kube-informer
 go 1.17
 
 require (
+	github.com/magefile/mage v1.14.0
 	github.com/sirupsen/logrus v1.8.1
 	k8s.io/api v0.22.3
 	k8s.io/apimachinery v0.22.3

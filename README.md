@@ -24,3 +24,4 @@ kubectl delete po redis
 ```
 
 You'll see some add, update, delete events in series.
+

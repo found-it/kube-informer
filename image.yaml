@@ -1,0 +1,27 @@
+# TODO: 12/21/22@12:36 Build me
+contents:
+  repositories:
+    - '@local /work/packages'
+  packages:
+    - inform@local
+
+entrypoint:
+  type: service-bundle
+  services:
+    inform: /usr/bin/inform --in-cluster
+
+accounts:
+  groups:
+    - groupname: inform
+      gid: 10000
+  users:
+    - username: inform
+      uid: 10000
+  run-as: inform
+
+environment:
+  PATH: /usr/sbin:/sbin:/usr/bin:/bin
+
+annotations:
+  app: inform
+  author: found-it
