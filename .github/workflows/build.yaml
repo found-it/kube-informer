@@ -21,3 +21,22 @@ jobs:
           ls
 
           echo "hello"
+      - name: Melange Build
+        id: melange
+        uses: chainguard-dev/actions/melange-build@main
+        with:
+          config: melange.yaml
+          sign-with-temporary-key: true
+      - name: APKO Build
+        id: apko
+        uses: chainguard-images/actions/apko-build@main
+        with:
+          config: image.yaml
+          tag: jpetersenames/inform:${{ github.sha }}
+          keyring-append: melange.rsa.pub
+      - name: Testing
+        id: test
+        shell: bash
+        run: |
+          set -x
+          docker load < output.tar
